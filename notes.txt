@@ -1,0 +1,142 @@
+https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023/resolve/main/raw/review_categories/Beauty_and_Personal_Care.jsonl?download=true
+
+gsutil cp "https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023/resolve/main/raw/review_categories/Beauty_and_Personal_Care.jsonl?download=true" gs://first_bda_project_bucket/Beauty_and_Personal_Care.jsonl
+
+
+----
+
+wget -O Beauty_and_Personal_Care.jsonl "https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023/resolve/main/raw/review_categories/Beauty_and_Personal_Care.jsonl?download=true"
+
+
+hadoop jar /usr/lib/hadoop/hadoop-streaming-3.3.6.jar \
+    -input /data/amazon_reviews/Beauty_and_Personal_Care.jsonl \
+    -output /data/word_count_output_2 \
+    -mapper "python3 mapper_new.py" \
+    -reducer "python3 reducer.py"
+	
+	
+hadoop jar /usr/lib/hadoop/hadoop-streaming.jar \
+    -input /data/amazon_reviews/sample.jsonl \
+    -output /data/amazon_reviews/output \
+    -mapper "python3 mapper_6.py" \
+    -reducer "python3 reducer_6.py"
+	
+hadoop jar /usr/lib/hadoop/hadoop-streaming-3.3.6.jar \
+    -input /user/bda/Beauty_and_Personal_Care.jsonl \
+    -output /user/bda/output_xx \
+    -mapper "python3 /home/q1074863/mapper2.py" \
+    -reducer "python3 /home/q1074863/reducer.py"
+	
+	hadoop jar /usr/lib/hadoop/hadoop-streaming-3.3.6.jar \
+    -input /user/bda/Beauty_and_Personal_Care.jsonl \
+    -output /user/bda/output_full \
+    -mapper "python3 /user/bda/mapper2.py" \
+    -reducer "python3 /user/bda/reducer.py"
+	
+	--successful script
+	hdfs dfs -cat /user/bda/sample_test.jsonl | python3 /home/q1074863/mapper2.py | sort | python3 /home/q1074863/reducer.py
+	
+	hadoop jar /usr/lib/hadoop/hadoop-streaming.jar \
+    -files /home/q1074863/mapper2.py,/home/q1074863/reducer2.py \
+    -input /user/bda/Beauty_and_Personal_Care.jsonl  \
+    -output /user/bda/output_real \
+    -mapper "python3 mapper2.py" \
+    -reducer "python3 reducer2.py"
+	
+	hadoop jar /usr/lib/hadoop/hadoop-streaming.jar \
+    -files /home/q1074863/mapper2.py,/home/q1074863/reducer2.py \
+    -input /home/q1074863/sample_test.jsonl  \
+    -output /user/bda/output \
+    -mapper "python3 mapper2.py" \
+    -reducer "python3 reducer2.py"
+
+	
+
+--verify files
+hadoop fs -ls /data/amazon_reviews/
+
+
+--file permission check
+
+hadoop fs -ls /data/amazon_reviews/
+
+--increase memory
+hadoop jar /usr/lib/hadoop/hadoop-streaming.jar \
+-D mapreduce.map.memory.mb=2048 \
+-D mapreduce.reduce.memory.mb=2048 \
+-input /data/amazon_reviews/sample.jsonl \
+-output /data/amazon_reviews/output \
+-mapper "python3 /home/q1074863/mapper_6.py" \
+-reducer "python3 /home/q1074863/reducer_6.py"
+
+--log
+yarn logs -applicationId application_1735828738440_0008
+
+
+--delete file
+hdfs dfs -rm -r /user/bda/output
+
+--listing
+hdfs dfs -ls /user/bda/
+
+
+chmod +x /home/q1074863/reducer2.py
+
+--resource manager log 
+http://<ResourceManager-host>:8088/cluster/app/application_1735990828709_0006
+
+http://cluster-eb9d-m.local.:8088/proxy/application_1735990828709_0006
+
+-- read output
+
+hdfs dfs -cat /user/bda/output_real/part-00000 | head -n 20
+
+.
+hdfs dfs -cat /user/bda/output_real_spark2/part-00000 | head -n 20
+
+
+--sample create
+hadoop fs -text /user/bda/Beauty_and_Personal_Care.jsonl | head -n 100 > sample_test.jsonl
+
+hdfs dfs -put /home/q1074863/sample_test.jsonl /user/bda/sample/
+
+hadoop jar /usr/lib/hadoop/hadoop-streaming.jar \
+    -files /home/q1074863/mapper2.py,/home/q1074863/reducer2.py \
+    -input /user/bda/sample/sample_test.jsonl \
+    -output /user/bda/output_test \
+    -mapper "python3 mapper2.py" \
+    -reducer "python3 reducer2.py"
+
+----spark
+
+spark-submit --master yarn --deploy-mode cluster /home/q1074863/spark_job.py
+
+
+hdfs dfsadmin -report
+------------manage ram
+
+sudo fallocate -l 4G /swapfile2
+sudo chmod 600 /swapfile2
+sudo mkswap /swapfile2
+sudo swapon /swapfile2
+Setting up swapspace version 1, size = 4 GiB (4294963200 bytes)
+no label, UUID=0274c6f1-f5cd-4dc6-80f0-22243f1854d6
+q1074863@cluster--m:~$ free -h
+               total        used        free      shared  buff/cache   available
+Mem:           7.3Gi       5.8Gi       876Mi       0.0Ki       638Mi       1.3Gi
+Swap:          6.0Gi        53Mi       5.9Gi
+q1074863@cluster--m:~$ sudo sync
+sudo sysctl vm.drop_caches=3
+vm.drop_caches = 3
+q1074863@cluster--m:~$ free -h
+
+
+ sudo sync
+sudo sysctl vm.drop_caches=3
+vm.drop_caches = 3
+
+
+sudo apt autoremove
+
+sudo swapoff -a
+sudo swapon -a
